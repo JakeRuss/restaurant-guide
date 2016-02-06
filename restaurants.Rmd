@@ -1,0 +1,37 @@
+---
+title: "Jake's Restaurant Guide"
+output: 
+  html_document:
+    theme: journal
+---
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(stringr)
+library(dplyr)
+library(leaflet)
+
+# Load restaurant notes data
+restaurants <- read_csv("restaurants.csv")
+
+# Add a column for pop
+restaurants <- restaurants %>%
+  mutate(name = str_c("<b>", name, "</b>"),
+         text = str_c(name, notes, sep = "<br/>"))
+
+```
+
+
+
+```{r, echo=FALSE}
+
+# Create restaurants map
+leaflet(restaurants) %>%
+  addTiles() %>%  
+  setView(-82.50, 28.0, zoom = 3) %>%
+  addMarkers(lng = ~long, lat = ~lat, popup = ~text)
+
+```
+
+
