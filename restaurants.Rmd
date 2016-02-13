@@ -10,12 +10,13 @@ library(readr)
 library(stringr)
 library(dplyr)
 library(leaflet)
+library(knitr)
 
 # Load restaurant notes data
 restaurants <- read_csv("restaurants.csv")
 
 # Add a column for pop
-restaurants <- restaurants %>%
+map_data <- restaurants %>%
   mutate(name = str_c("<b>", name, "</b>"),
          text = str_c(name, notes, sep = "<br/>"))
 
@@ -28,11 +29,19 @@ The map below contains `r nrow(restaurants)` pins with restaurant reviews.
 ```{r, echo=FALSE}
 
 # Create restaurants map
-leaflet(restaurants) %>%
+leaflet(map_data) %>%
   addTiles() %>%  
   setView(-82.50, 28.0, zoom = 3) %>%
   addMarkers(lng = ~long, lat = ~lat, popup = ~text)
 
 ```
 
+```{r, echo=FALSE}
+
+restaurants %>%
+  select(name, address) %>%
+  arrange(name) %>%
+  kable()
+
+```
 
