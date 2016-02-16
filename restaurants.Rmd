@@ -9,11 +9,21 @@ output:
 library(readr)
 library(stringr)
 library(dplyr)
+library(ggplot2)
 library(leaflet)
 library(knitr)
+library(ggmap)
 
 # Load restaurant notes data
-restaurants <- read_csv("restaurants.csv")
+restaurants <- read_csv("restaurants.csv") %>% arrange(name)
+
+# Add latitude and longitude data to restaurant df
+#
+# TODO: Add a way to cache/update the lat/long info. Right now it's small 
+# problem to re-run mutate_geocode each time but eventually fix this.
+restaurants <- restaurants %>%
+  data.frame() %>%            # ggmap seems not to play nice with tbl_df
+  mutate_geocode(address)
 
 # Add a column for pop
 map_data <- restaurants %>%
@@ -32,15 +42,18 @@ The map below contains `r nrow(restaurants)` pins with restaurant reviews.
 leaflet(map_data) %>%
   addTiles() %>%  
   setView(-82.50, 28.0, zoom = 3) %>%
-  addMarkers(lng = ~long, lat = ~lat, popup = ~text)
+  addMarkers(lng = ~lon, lat = ~lat, popup = ~text)
 
 ```
 
 ```{r, echo=FALSE}
 
 restaurants %>%
-  select(name, address) %>%
-  arrange(name) %>%
+  select(name, address, phone) %>%
+  mutate(name = ifelse(test = is.na(restaurants$web.address), 
+                       yes  = name, 
+                       no   = str_c("[", name, "](", restaurants$web.address, ")"))) %>%
+ 
   kable()
 
 ```
